@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="text/javascript" src="./ws-avc-player/lib/WSAvcPlayer.js"></script>
+</head>
+
+<body>
+    <div id="video-box" /> 
+
+    <!-- <video controls="controls" width="500"> 
+        <source src='./TESLA-test1-raw.mp4' type='video/ogg; codecs="theora, vorbis"'>
+        <source src='./TESLA-test1-raw.mp4' type='video/mp4; codecs="AVC (H.264), samr"'>
+    </video> -->
+
+<script type="text/javascript">
+    const wsavc = new WSAvcPlayer.default({ useWorker: false })
+
+    document.getElementById('video-box').appendChild(wsavc.AvcPlayer.canvas)
+
+    const vb = document.getElementById('video-box')
+    vb.style = `padding-bottom: calc( 100% * 1280 / 960)`
+
+    window.wsavc = wsavc
+
+    // Create h264 player
+    // var uri = "ws://" + document.location.host;
+    const uri = `ws://localhost:3333/ws`
+    wsavc.connect(uri);
+
+    wsavc.on('disconnected', () => console.log('WS Disconnected'))
+    wsavc.on('connected',() => console.log('WS connected'))
+    wsavc.on('frame_shift', fbl => {
+        console.log('DEBUG frame_shift', fbl)
+    //  fb.innerText = 'fl: '+ fbl
+    })
+    
+    wsavc.on('initalized', data => {
+        console.log('initalized', data)
+    })
+
+    // wsavc.on('resized',(payload)=>{
+    //   console.log('resized', payload)
+    //   const vb = document.getElementById('video-box')
+
+    //   vb.style = `padding-bottom: calc( 100% * ${payload.height} / ${ payload.width })`
+    // })
+
+    wsavc.on('stream_active',active => console.log('Stream is ', active ? 'active' : 'offline'))
+
+
+    wsavc.on('custom_event_from_server',event=>console.log('got event from server', event))
+
+</script>
+</body>
+
+</html>
