@@ -1,100 +1,53 @@
+# Browser plays h264 stream from golang live transcode server. 
 
-Stream realtime low-latency h264 video directly to the browser.
-Comes with a browser player, and streaming server.
- Uses [Broadway](https://github.com/mbebenita/Broadway) browser decoder and player. Ideal for for Raspberry pi cam streaming.
+## Why?
 
-# Usage
+## Install & Setup
 
-## Server:
+### Backend
 
- ```js
- const AvcServer = require('ws-avc-player/lib/server')
- const { WebSocketServer } = require('@clusterws/cws') // works with ws, legacy uws
- const wss = new WebSocketServer({ port: 3333 })
- const avcServer = new AvcServer(wss, 640, 480) //initial width and height (it adapts to the stream)
 
- avcServer.setVideoStream(h264Stream)
- ```
-More detailed in [example/index.js](example/index.js) 
+```sh
+# Install dependencies.
+cd {{PROJ_DIR}} && go get
 
-## Client: 
-
-```html
-<html>
-  <body>
-    <!-- define the element to hold the canvas -->
-     <div id="video-box" />
-    <!-- provide WSAvcPlayer -->
-    <script type="text/javascript" src="WSAvcPlayer.js" />
-    <script type="text/javascript">
-      //initialize the player, if useWorker: true, than you must have `/Decoder.js` availible at the root of the domain.
-      var wsavc = new WSAvcPlayer.default({useWorker:false}); 
-      //append the canvas to the box element, you can style the box element and canvas.
-      document.getElementById('video-box').appendChild(wsavc.AvcPlayer.canvas)
-      //connect to the websocket
-      wsavc.connect("ws://" + document.location.host+":3333");
-    </script>    
-  </body>
-</html>
+# Host up project.
+make run_local
 ```
 
-More detailed in [example/html/index.html](example/html/index.html)
+> `{{PROJ_DIR}}` is the path of this project.
 
-# Running the demo
-```bash
-git clone https://github.com/matijagaspar/ws-avc-player
-cd ws-avc-player
-npm install
-npm run example
+2 tcp servers will be up and running on `ws://localhost:3333` and `tcp://localhost:5000`. push your `rawvideo` stream to `:5000`. The tcp server will broadcast the stream received from `:5000` to clients that are connected to `:3333`. 
 
-# browse to http://127.0.0.1:8080/ for a demo player
+## Frontend
 
 ```
-then run
+# Download ws-avc-player
+cd {{PROJ_DIR}} && git clone git@github.com:matijagaspar/ws-avc-player.git
 
-```bash
-ffmpeg -framerate 30 -video_size 640x480 -f [driver] -i [device]  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -r 15 -g 30 -f rawvideo tcp://localhost:5000
+# Open demo html script
+open ./test_browser_play_h264.html 
 ```
 
-or
-```bash
-raspivid -t 0 -w 640 -h 480 -hf -fps 15 -o - | nc localhost 5000
+Frontend uses [ws-avc-player](https://github.com/matijagaspar/ws-avc-player) to decode h264 video stream. `ws-avc-player` uses [Broadway.js](https://github.com/mbebenita/Broadway) as the decoder.
+
+## Push stream!
+
+We can now push the stream to transcoding server to test out the browser decoder. We have the following options to test it out.
+
+**ffmpeg**
+
+If your video is in `.mp4` format, you could convert it to [rawvideo](https://stackoverflow.com/questions/7238013/rawvideo-and-rgb32-values-passed-to-ffmpeg#:~:text=%2Df%20rawvideo%20is%20basically%20a,to%20specify%20the%20%2Dpix_fmt%20option.)
+
+```
+ffmpeg -r 30 -i ./TESLA-test1-raw.mp4  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -r 15 -g 30 -f rawvideo tcp://localhost:5000
 ```
 
-alternatively run:
-```bash
-npm run example raspivid
+**nc**
+
+If you have an existing rawvideo, use `nc` to send stream to `:5000`
+
 ```
-It will automatically run raspivid too
-
-## Using it in your own project
-
-`yarn add ws-avc-player`
-
-### On Client
-* `import WSAvcPlayer from 'ws-avc-player'`
-* ``` 
-        const wsavc = new WSAvcPlayer({useWorker:true})
-        wsavc.connect(serverUrl);
-
-  ```
-###  On Server:
-
-* See `example/index.js`
-
-
-
-
-# TODO:
- * ~Decoder as worker~
- * More docs
- * More cleanup
- * Audio
- * ~Ability to change video resolution or better parse sps/pps~
- * ~Decent performance~
+cat out_5 | nc localhost 5000
+```
  
-# Credits
-* [matijagaspar](https://github.com/matijagaspar)
-* [h264-live-player](https://github.com/131/h264-live-player)
-* [Broadway](https://github.com/mbebenita/Broadway)
-* [urbenlegend/WebStreamer](https://github.com/urbenlegend/WebStreamer)
