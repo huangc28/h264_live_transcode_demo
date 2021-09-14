@@ -1,12 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"net"
-	"os"
 
 	"github.com/golang/glog"
 )
@@ -40,13 +38,6 @@ func RunStreamTcpServer(hub *Hub) error {
 }
 
 func broadcastToClient(stream io.ReadCloser, hub *Hub) error {
-	out, err := os.OpenFile("./out_4", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-
-	if err != nil {
-		return err
-	}
-
-	defer out.Close()
 
 	// Make a 32mb buffer.
 	buf := make([]byte, 32*1024)
@@ -60,12 +51,6 @@ func broadcastToClient(stream io.ReadCloser, hub *Hub) error {
 
 		if rnum > 0 {
 			// Stream bytes to all socket client, so we need the hub to publish stream to client connections.
-			br := bytes.NewReader(buf[0:rnum])
-
-			if _, err := io.Copy(out, br); err != nil {
-				return err
-			}
-
 			newb := make([]byte, rnum)
 			copy(newb, buf[0:rnum])
 
