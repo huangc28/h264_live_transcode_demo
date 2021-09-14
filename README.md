@@ -37,7 +37,7 @@ We can now push the stream to transcoding server to test out the browser decoder
 
 **ffmpeg**
 
-If your video is in `.mp4` format, you could convert it to [rawvideo](https://stackoverflow.com/questions/7238013/rawvideo-and-rgb32-values-passed-to-ffmpeg#:~:text=%2Df%20rawvideo%20is%20basically%20a,to%20specify%20the%20%2Dpix_fmt%20option.)
+If your video is in `.mp4` format, you could convert it to [rawvideo](https://stackoverflow.com/questions/7238013/rawvideo-and-rgb32-values-passed-to-ffmpeg#:~:text=%2Df%20rawvideo%20is%20basically%20a,to%20specify%20the%20%2Dpix_fmt%20option.) before streaming to transcoding server.
 
 ```
 ffmpeg -r 30 -i ./TESLA-test1-raw.mp4  -vcodec libx264 -vprofile baseline -b:v 500k -bufsize 600k -tune zerolatency -pix_fmt yuv420p -r 15 -g 30 -f rawvideo tcp://localhost:5000
