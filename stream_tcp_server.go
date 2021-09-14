@@ -54,22 +54,12 @@ func broadcastToClient(stream io.ReadCloser, hub *Hub) error {
 	for {
 		rnum, err := stream.Read(buf)
 
-		// if err == io.EOF {
-		// 	close(hub.broadcast)
-		// }
-
 		if err != nil {
 			return err
 		}
 
 		if rnum > 0 {
-			// glog.Infof("DEBUG byte length %v", rn)
-			// glog.Infof("DEBUG stream tcp socket client %v", hub.clients)
-
 			// Stream bytes to all socket client, so we need the hub to publish stream to client connections.
-			// Iterate through hub clients
-			// log.Printf("DEBUG 2 trigger send!!! %v", hub.clients)
-
 			br := bytes.NewReader(buf[0:rnum])
 
 			if _, err := io.Copy(out, br); err != nil {
@@ -79,7 +69,6 @@ func broadcastToClient(stream io.ReadCloser, hub *Hub) error {
 			newb := make([]byte, rnum)
 			copy(newb, buf[0:rnum])
 
-			// hub.broadcast <- buf[0:rnum]
 			hub.broadcast <- newb
 		}
 
@@ -90,15 +79,6 @@ func handleConnection(c net.Conn, hub *Hub) {
 	log.Printf("Serving %s\n", c.RemoteAddr().String())
 
 	for {
-		// netData, err := bufio.NewReader(c).ReadString('\n')
-		// bytes := bufio.NewScanner(c).Scan()
-
-		// if err != nil {
-		// 	fmt.Println(err)
-		// 	return
-		// }
-
-		// log.Printf("DEBUG 1 net data length %v", len(netData))
 		evtReader := NewEventReader(c)
 
 		stream := evtReader.ReadEvent()
@@ -117,16 +97,6 @@ func handleConnection(c net.Conn, hub *Hub) {
 
 			break
 		}
-
-		// log.Printf("DEBUG 2 net data length %v", len(bytes))
-
-		// temp := strings.TrimSpace(string(bytes))
-		// if temp == "STOP" {
-		// 	break
-		// }
-
-		// We will broadcast the byte data to socket client.
-		// c.Write([]byte(string([]byte{123})))
 	}
 
 	c.Close()
