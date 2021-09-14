@@ -28,8 +28,6 @@ OuterLoop:
 		// Try to match first byte in the needles.
 		if needles[0] != b {
 			i = -1
-
-			continue
 		} else {
 			i = idx
 
